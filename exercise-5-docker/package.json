@@ -1,0 +1,27 @@
+{
+  "name": "exercise-5-docker",
+  "version": "1.0.0",
+  "description": "Ćwiczenie 5: Docker - konteneryzacja aplikacji",
+  "main": "script.js",
+  "scripts": {
+    "build": "tsc script.ts",
+    "start": "node script.js",
+    "dev": "tsc script.ts && node script.js",
+    "docker:build": "docker build -t exercise-5-app .",
+    "docker:run": "docker run -p 3000:3000 exercise-5-app",
+    "docker:run:detached": "docker run -d -p 3000:3000 --name exercise-5-container exercise-5-app",
+    "docker:stop": "docker stop exercise-5-container",
+    "docker:remove": "docker rm exercise-5-container",
+    "docker:logs": "docker logs exercise-5-container",
+    "docker:clean": "docker stop exercise-5-container && docker rm exercise-5-container && docker rmi exercise-5-app",
+    "test:endpoints": "curl -s http://localhost:3000 && echo && curl -s http://localhost:3000/health && echo && curl -s http://localhost:3000/api/test"
+  },
+  "dependencies": {
+    "chalk": "4.1.2"
+  },
+  "devDependencies": {
+    "@types/chalk": "0.4.31",
+    "@types/node": "20.19.39",
+    "typescript": "5.9.3"
+  }
+}

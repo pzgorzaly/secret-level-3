@@ -1,0 +1,110 @@
+# Docker Compose for Hono API + PostgreSQL (separated)
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database (primary service)
+  db:
+    image: postgres:15-alpine
+    container_name: hono-todos-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: todos_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: todos_password_2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - todos_postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d todos_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - todos-network
+
+  # Hono API Server (optional - can run separately)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hono-todos-api
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      # Database connection
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: todos_db
+      DB_USER: postgres
+      DB_PASSWORD: todos_password_2024
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - todos-network
+    volumes:
+      - ./src:/app/src:ro
+    profiles:
+      - with-api  # Uruchom z: docker-compose --profile with-api up
+
+  # PgAdmin (optional database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: hono-pgadmin
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@todos.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - todos_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - todos-network
+    profiles:
+      - tools  # Uruchom z: docker-compose --profile tools up
+
+# Networks
+networks:
+  todos-network:
+    driver: bridge
+    name: hono-todos-network
+
+# Volumes
+volumes:
+  todos_postgres_data:
+    driver: local
+    name: hono-todos-postgres-data
+  todos_pgadmin_data:
+    driver: local
+    name: hono-todos-pgadmin-data
+
+# Comments for education:
+#
+# Default: Only database runs
+# docker-compose up
+#
+# With API in Docker:
+# docker-compose --profile with-api up
+#
+# With database admin tools:
+# docker-compose --profile tools up
+#
+# Everything together:
+# docker-compose --profile with-api --profile tools up
+#
+# This separation allows:
+# 1. Run only database for local API development
+# 2. Run full stack in Docker when needed
+# 3. Add admin tools when debugging database

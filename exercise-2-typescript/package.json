@@ -1,0 +1,14 @@
+{
+  "name": "exercise-2-typescript",
+  "version": "1.0.0",
+  "description": "Ćwiczenie 2: Wprowadzenie do TypeScript",
+  "main": "script.js",
+  "scripts": {
+    "build": "tsc script.ts",
+    "run": "node script.js",
+    "start": "tsc script.ts && node script.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

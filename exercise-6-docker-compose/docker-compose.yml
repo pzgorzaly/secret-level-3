@@ -1,0 +1,136 @@
+# Ćwiczenie 6: Docker Compose - orkiestracja wielu kontenerów
+
+version: '3.8'
+
+services:
+  # Aplikacja Node.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        APP_VERSION: 1.0.0
+    container_name: fullstack-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Konfiguracja bazy danych
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: app_db
+      DB_USER: postgres
+      DB_PASSWORD: supersecretpassword
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      # Opcjonalnie: możesz montować logi
+      - ./logs:/app/logs
+
+  # Baza danych PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=pl_PL.UTF-8 --lc-ctype=pl_PL.UTF-8"
+    volumes:
+      # Persistence danych
+      - postgres_data:/var/lib/postgresql/data
+      # Opcjonalnie: skrypty inicjalizacyjne
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # PgAdmin - interfejs webowy do zarządzania PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin-interface
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Redis - cache (opcjonalny, dla demonstracji)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redispassword
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redispassword", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+# Networks - izolacja sieciowa
+networks:
+  app-network:
+    driver: bridge
+    name: fullstack-network
+
+# Volumes - persistence danych
+volumes:
+  postgres_data:
+    driver: local
+    name: postgres-data
+  pgadmin_data:
+    driver: local
+    name: pgadmin-data
+  redis_data:
+    driver: local
+    name: redis-data
+
+# Komentarze edukacyjne:
+#
+# version: wersja składni Docker Compose
+# services: definicje kontenerów
+# build: budowanie z Dockerfile
+# image: gotowy obraz z Docker Hub
+# ports: mapowanie portów (host:container)
+# environment: zmienne środowiskowe
+# depends_on: kolejność uruchamiania
+# condition: service_healthy - czeka na health check
+# volumes: montowanie danych (persistence)
+# networks: izolacja sieciowa
+# restart: polityka restartowania
+# healthcheck: sprawdzanie stanu usługi
+#
+# Korzyści:
+# - Jedna komenda uruchamia cały stack
+# - Izolacja sieciowa między usługami
+# - Persistence danych
+# - Skalowanie i zarządzanie
+# - Identyczne środowiska dev/staging/prod

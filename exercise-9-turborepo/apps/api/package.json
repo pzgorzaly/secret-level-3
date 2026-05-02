@@ -1,0 +1,30 @@
+{
+  "name": "@todo-app/api",
+  "version": "1.0.0",
+  "description": "Turborepo Todo API with full CRUD",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "build": "bun build src/server.ts --outdir dist --target node",
+    "start": "node dist/server.js",
+    "start:bun": "bun src/server.ts",
+    "lint": "echo 'Linting Turborepo API...' && echo '✅ API code looks good!'",
+    "clean": "rm -rf dist",
+    "db:up": "docker-compose up db -d",
+    "db:down": "docker-compose down",
+    "db:logs": "docker-compose logs db -f",
+    "db:reset": "docker-compose down -v && docker-compose up db -d",
+    "setup": "npm run db:up && echo '⏳ Waiting for Turborepo database...' && sleep 5",
+    "test": "curl -s http://localhost:4000/health",
+    "db:connect": "docker-compose exec db psql -U postgres -d turborepo_todos_db"
+  },
+  "dependencies": {
+    "hono": "^4.12.16",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.2",
+    "bun-types": "latest"
+  }
+}

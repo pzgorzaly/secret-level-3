@@ -1,0 +1,19 @@
+{
+  "name": "exercise-3-npm-dependency",
+  "version": "1.0.0",
+  "description": "Ćwiczenie 3: Używanie zewnętrznej biblioteki NPM (Chalk)",
+  "main": "script.js",
+  "scripts": {
+    "build": "tsc script.ts",
+    "run": "node script.js",
+    "start": "tsc script.ts && node script.js",
+    "dev": "tsc --watch script.ts"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

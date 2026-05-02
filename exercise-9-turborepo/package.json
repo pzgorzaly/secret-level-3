@@ -1,0 +1,54 @@
+{
+  "name": "exercise-9-turborepo",
+  "version": "1.0.0",
+  "description": "Ćwiczenie 9: Monorepo z Turborepo - Full Stack Todo App",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo run clean",
+    "test": "turbo run test",
+    "setup": "npm install && npm run setup:env && npm run setup:db",
+    "setup:env": "cp .env.template .env && cp apps/api/.env.template apps/api/.env && cp apps/web/.env.template apps/web/.env",
+    "setup:db": "cd apps/api && npm run setup",
+    "start": "npm run setup && npm run dev",
+    "build:prod": "turbo run build --filter=!@todo-app/dev-tools",
+    "preview": "turbo run preview",
+    "db:reset": "cd apps/api && npm run db:reset",
+    "db:up": "cd apps/api && npm run db:up",
+    "db:down": "cd apps/api && npm run db:down",
+    "docker:build": "docker build -t todo-app-full-stack .",
+    "docker:run": "docker run -p 3000:3000 -p 4000:4000 todo-app-full-stack"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^2.9.7",
+    "eslint": "^8.48.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.0",
+    "typescript": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "turborepo",
+    "monorepo",
+    "fullstack",
+    "react",
+    "hono",
+    "postgresql",
+    "typescript",
+    "todo-app"
+  ],
+  "dependencies": {
+    "hono": "4.12.16",
+    "vite": "8.0.10"
+  }
+}
